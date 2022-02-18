@@ -5,7 +5,6 @@ from math import *
 import numpy as np
 import matplotlib.pyplot as mp
 
-
 generation_home_land=TP.NamedTemporaryFile(delete=False)
 generation_house=generation_home_land.name+".npz"
 
@@ -18,7 +17,6 @@ generation=0
 def check_duplicate(gene):
     arr1=list(dict(gene).values())
     return len(np.unique(arr1, axis=0)) != len(arr1)
-
 
 def shuffle_2D_matrix(matrix, axis = 0):
     """
@@ -45,7 +43,6 @@ def shuffle_2D_matrix(matrix, axis = 0):
 
     return shuffled_matrix
 
-
 def first_creation(waypoints,no_of_parents):
     """
     create the first n chromosome to begin 
@@ -60,6 +57,7 @@ def first_creation(waypoints,no_of_parents):
     save the dictionary into temporary file 
     """
     dict={}
+    waypoints=np.delete(waypoints,0,axis=0)
     i=0
     while(i<no_of_parents):
         parent_n=shuffle_2D_matrix(waypoints,1)
@@ -103,6 +101,8 @@ def cross_over(genoms,row):
             while(parent_counter<row):
                 child_gene_counter=0 #loop through child loop that have the gene
                 child=np.resize(child,(row_child,2))
+
+                #comparison for repeated element
                 while(child_gene_counter<row_child):
                     if(bool(np.all(parent[parent_counter]==child[child_gene_counter]))): #there are same goal on booth so dont transfer
                         duplicate_counter=1
@@ -285,7 +285,8 @@ def best_of_best_saver(genome,no_of_points):
     #mp.show()
 
 
-waypoint = np.array([   [ 114.28714842,   41.98759603],
+waypoint = np.array([   [0. , 0.],
+                        [ 114.28714842,   41.98759603],
                         [  62.47783741,  -10.16037304],
                         [  24.5058101 ,  179.34217451],
                         [  -9.51912637,   86.66461683],
@@ -305,6 +306,7 @@ waypoint = np.array([   [ 114.28714842,   41.98759603],
                         [   0.25090536,   49.73685338],
                         [  95.02087717,   63.66352072],])
 
+
 row,col=waypoint.shape
 
 first_creation(waypoint,6) #begin of generating the parents
@@ -322,7 +324,7 @@ best_of_best=500000000
 
 wait_to_exit=0 #how many times should the best distance be repeated  to exit the main loop
 
-exit_threshold=2000 #limit of repeated best distance 
+exit_threshold=1000 #limit of repeated best distance 
 
 while(1):
     cross_over(generation_gnenome,row)
@@ -348,7 +350,7 @@ while(1):
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
     if(len(generation_gnenome)==1):
-        first_creation(waypoint,6) #begin of generating the parents at case of eleminating all children
+        first_creation(best_best_genes["smallest_one"],6) #begin of generating the parents at case of eleminating all children
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
     print("best_best="+str(best_of_best))
