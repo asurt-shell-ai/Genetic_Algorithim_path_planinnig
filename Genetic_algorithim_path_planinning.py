@@ -113,7 +113,7 @@ def cross_over(genoms,row):
                     fianl_birth=np.append(child,parent[parent_counter])
                     child=fianl_birth
                     row_child+=1
-                    if(row_child==(row+2)):
+                    if(row_child==(row)):
                         hospital.update({("child_"+str(no_of_child)):np.resize(fianl_birth,(row,2))})
                         no_of_child+=1
                         break
@@ -309,14 +309,14 @@ waypoint = np.array([   [0. , 0.],
 
 row,col=waypoint.shape
 
-first_creation(waypoint,6) #begin of generating the parents
+first_creation(waypoint,4) #begin of generating the parents
 generation_gnenome=np.load(generation_house,allow_pickle=False)
 
 '''
 start of the genetic algorithm
 '''
 no_of_generation=1 #count no of generation
-every_genereation_check=3 #pass n generation then check there fitnes
+every_genereation_check=2 #pass n generation then check there fitnes
 
 now_best=0
 
@@ -324,12 +324,11 @@ best_of_best=500000000
 
 wait_to_exit=0 #how many times should the best distance be repeated  to exit the main loop
 
-exit_threshold=1000 #limit of repeated best distance 
+exit_threshold=10000 #limit of repeated best distance 
 
 while(1):
     cross_over(generation_gnenome,row)
     generation_gnenome=np.load(generation_house,allow_pickle=False)
-
     mutation(generation_gnenome,row)
     generation_gnenome=np.load(generation_house,allow_pickle=False)
 
@@ -350,7 +349,7 @@ while(1):
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
     if(len(generation_gnenome)==1):
-        first_creation(best_best_genes["smallest_one"],6) #begin of generating the parents at case of eleminating all children
+        first_creation(best_best_genes["smallest_one"],4) #begin of generating the parents at case of eleminating all children
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
     print("best_best="+str(best_of_best))
