@@ -100,7 +100,7 @@ def cross_over(genoms,row):
             parent=parent_genes[name_of_parents[male]]
             parent_counter=0 #loop through parent loop that carry the parent genes to prevent same goal
             duplicate_counter=0 #count duplicate points
-            while(parent_counter<row-2):
+            while(parent_counter<row):
                 child_gene_counter=0 #loop through child loop that have the gene
                 child=np.resize(child,(row_child,2))
                 while(child_gene_counter<row_child):
@@ -113,7 +113,7 @@ def cross_over(genoms,row):
                     fianl_birth=np.append(child,parent[parent_counter])
                     child=fianl_birth
                     row_child+=1
-                    if(row_child==row):
+                    if(row_child==(row+2)):
                         hospital.update({("child_"+str(no_of_child)):np.resize(fianl_birth,(row,2))})
                         no_of_child+=1
                         break
@@ -322,7 +322,7 @@ best_of_best=500000000
 
 wait_to_exit=0 #how many times should the best distance be repeated  to exit the main loop
 
-exit_threshold=100 #limit of repeated best distance 
+exit_threshold=2000 #limit of repeated best distance 
 
 while(1):
     cross_over(generation_gnenome,row)
@@ -347,7 +347,7 @@ while(1):
         elemination(generation_gnenome,child_to_be_eliminated)
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
-    if(len(generation_gnenome)==0 or len(generation_gnenome)==1):
+    if(len(generation_gnenome)==1):
         first_creation(waypoint,6) #begin of generating the parents at case of eleminating all children
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
@@ -359,6 +359,7 @@ while(1):
     
     no_of_generation+=1
 beeest_dict=dict(best_best_genes)
+print("\nbest \n",str(dict(best_best_genes)))
 mp.plot(beeest_dict["smallest_one"][:,0],beeest_dict["smallest_one"][:,1])
 mp.scatter(waypoint[:,0],waypoint[:,1])
 mp.show()
