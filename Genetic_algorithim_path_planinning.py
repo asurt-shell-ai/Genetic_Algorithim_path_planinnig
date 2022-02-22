@@ -2,6 +2,7 @@ from curses import keyname
 import random as ran
 import tempfile as TP
 from math import *
+from turtle import distance
 import numpy as np
 import matplotlib.pyplot as mp
 
@@ -14,9 +15,37 @@ smallest_gene_house=smallest_gene_land.name+".npz"
 no_of_child=0
 generation=0
 
-def check_duplicate(gene):
-    arr1=list(dict(gene).values())
-    return len(np.unique(arr1, axis=0)) != len(arr1)
+def distance_measuring(genome,no_of_points):
+    '''
+    measuring total eculadian distance for each genom
+
+    Argument
+    -----------
+    genome: dictionary with string key and 2d array
+    no_of_points: now of goals in the map
+
+    Return
+    -----------
+    distance list contain total eculdian distance for each genome
+    '''
+    i=0
+    j=1
+    total_distance=[]
+    key=list(dict(genome))
+    while(i<len(key)):
+        sum_of_distance=0
+        while(j<no_of_points-1):
+            x1=float(genome[key[i]][j][0])
+            x2=float(genome[key[i]][j+1][0])
+            y1=float(genome[key[i]][j][1])
+            y2=float(genome[key[i]][j+1][1])
+            sum_of_distance+=sqrt(pow((x1-x2),2)+(pow((y1-y2),2)))
+            j+=1
+        j=0
+        total_distance.append(sum_of_distance)
+        i+=1
+    i=0
+    return total_distance
 
 def shuffle_2D_matrix(matrix, axis = 0):
     """
@@ -56,9 +85,11 @@ def first_creation(waypoints,no_of_parents):
         none
     save the dictionary into temporary file 
     """
-    dict={}
-    waypoints=np.delete(waypoints,0,axis=0)
     i=0
+    dict={}
+    dict.update({"genom_"+str(i):waypoints})
+    i+=1
+    waypoints=np.delete(waypoints,0,axis=0)
     while(i<no_of_parents):
         parent_n=shuffle_2D_matrix(waypoints,1)
         parent_n=np.append(parent_n,np.array([[0,0]]),axis=0)
@@ -93,7 +124,7 @@ def cross_over(genoms,row):
         while(female<len(name_of_parents)):#other gene
             #print(name_of_parents[male]+" married to "+name_of_parents[female])
             endpoint=ran.randint(1,(row-5))
-            child=parent_genes[name_of_parents[female]][0:endpoint]
+            child=parent_genes[name_of_parents[female]][0:int(row/2)]
             row_child,col_child=np.shape(child)
             parent=parent_genes[name_of_parents[male]]
             parent_counter=0 #loop through parent loop that carry the parent genes to prevent same goal
@@ -157,7 +188,7 @@ def mutation(genoms,row):
     i=0
     np.savez(generation_house,**genes)
 
-def fitness(genome,no_of_points,biggest_acceptable_distance):
+def fitness(genome,distance_list,biggest_acceptable_distance):
     """
     fitness function that test which geneome has the shortest distance
     and get its index to enter it in fuction to be deleted
@@ -173,26 +204,12 @@ def fitness(genome,no_of_points,biggest_acceptable_distance):
     j=1
     y=0
     total_distance=[]
+    total_distance=distance_list
     genome_to_be_deleted=[]
     key=list(dict(genome))
-    #print(key)
-    #print(genome[key[i]])
-    while(i<len(genome)):
-        sum_of_distance=0
-        while(j<no_of_points-1):
-            x1=float(genome[key[i]][j][0])
-            x2=float(genome[key[i]][j+1][0])
-            y1=float(genome[key[i]][j][1])
-            y2=float(genome[key[i]][j+1][1])
-            sum_of_distance+=sqrt(pow((x1-x2),2)+(pow((y1-y2),2)))
-            j+=1
-        j=0
-        total_distance.append(sum_of_distance)
-        i+=1
-    i=0 
-    print(total_distance)
+
     while(y<len(total_distance)):
-        if(total_distance[y]>(biggest_acceptable_distance)):
+        if(total_distance[y] > float(biggest_acceptable_distance)):
             genome_to_be_deleted.append(y)
         y+=1
     y=0
@@ -219,7 +236,7 @@ def elemination(generation_genoms,key_name):
         i+=1
     np.savez(generation_house,**test)
 
-def best_of_best_finder(genome,no_of_points):
+def best_of_best_saver(genome,distance_list):
     """
         measuring total distance for each gene in final generation and select the best genoms
     Arguments:
@@ -230,62 +247,15 @@ def best_of_best_finder(genome,no_of_points):
     """
     i=0
     j=1
-    total_distance=[]
     key=list(dict(genome))
-    while(i<len(key)):
-        sum_of_distance=0
-        while(j<no_of_points-1):
-            x1=float(genome[key[i]][j][0])
-            x2=float(genome[key[i]][j+1][0])
-            y1=float(genome[key[i]][j][1])
-            y2=float(genome[key[i]][j+1][1])
-            sum_of_distance+=sqrt(pow((x1-x2),2)+(pow((y1-y2),2)))
-            j+=1
-        j=0
-        total_distance.append(sum_of_distance)
-        i+=1
-    i=0
-    minimum=min(total_distance) #search for the minimum distance in list
-    return minimum
-
-def best_of_best_saver(genome,no_of_points):
-    """
-        measuring total distance for each gene in final generation and select the best genoms
-    Arguments:
-        genoms: presverve generation geneoms 
-        no of points: no of goals cordintae
-    Returns:
-        none
-    """
-    i=0
-    j=1
     total_distance=[]
-    key=list(dict(genome))
-    while(i<len(key)):
-        sum_of_distance=0
-        while(j<no_of_points-1):
-            x1=float(genome[key[i]][j][0])
-            x2=float(genome[key[i]][j+1][0])
-            y1=float(genome[key[i]][j][1])
-            y2=float(genome[key[i]][j+1][1])
-            sum_of_distance+=sqrt(pow((x1-x2),2)+(pow((y1-y2),2)))
-            j+=1
-        j=0
-        total_distance.append(sum_of_distance)
-        i+=1
-    i=0
+    total_distance.append(distance_list)
     minimum=min(total_distance) #search for the minimum distance in list
     index_minimum=total_distance.index(minimum) # determine where the gene name taht has the smallest total distance
     smallest_distance_gene={"smallest_one":genome[key[index_minimum]]}
     np.savez(smallest_gene_house,**smallest_distance_gene)
-    
-    #print(smallest_distance_gene)
-    #mp.plot(genome[key[index_minimum]][:,0],genome[key[index_minimum]][:,1])
-    #mp.scatter(waypoint[:,0],waypoint[:,1])
-    #mp.show()
 
-
-waypoint = np.array([   [0. , 0.],
+waypoint =  np.array([           [0.,0.],
                         [ 114.28714842,   41.98759603],
                         [  62.47783741,  -10.16037304],
                         [  24.5058101 ,  179.34217451],
@@ -304,19 +274,18 @@ waypoint = np.array([   [0. , 0.],
                         [ -65.86307249,  -51.20886232],
                         [-118.65056562,   58.30787596],
                         [   0.25090536,   49.73685338],
-                        [  95.02087717,   63.66352072],])
-
+                        [  95.02087717,   63.66352072]])
 
 row,col=waypoint.shape
 
-first_creation(waypoint,4) #begin of generating the parents
+first_creation(waypoint,5) #begin of generating the parents
 generation_gnenome=np.load(generation_house,allow_pickle=False)
 
 '''
 start of the genetic algorithm
 '''
 no_of_generation=1 #count no of generation
-every_genereation_check=2 #pass n generation then check there fitnes
+every_genereation_check=1 #pass n generation then check there fitnes
 
 now_best=0
 
@@ -324,15 +293,15 @@ best_of_best=500000000
 
 wait_to_exit=0 #how many times should the best distance be repeated  to exit the main loop
 
-exit_threshold=10000 #limit of repeated best distance 
+exit_threshold=50#limit of repeated best distance 
 
 while(1):
     cross_over(generation_gnenome,row)
     generation_gnenome=np.load(generation_house,allow_pickle=False)
     mutation(generation_gnenome,row)
     generation_gnenome=np.load(generation_house,allow_pickle=False)
-
-    now_best=best_of_best_finder(generation_gnenome,row)
+    distance=distance_measuring(generation_gnenome,row)
+    now_best=min(distance)
 
     if(now_best==best_of_best or best_of_best<now_best):
         print("condition happened")
@@ -344,12 +313,12 @@ while(1):
         best_best_genes=np.load(smallest_gene_house,allow_pickle=False)
 
     if(no_of_generation%every_genereation_check==0):
-        child_to_be_eliminated=fitness(generation_gnenome,row,biggest_acceptable_distance=(now_best*1.02))# the child that will be eleminated it if it bigger than acceptable distance
+        child_to_be_eliminated=fitness(generation_gnenome,distance,biggest_acceptable_distance=(now_best*1.15))# the child that will be eleminated it if it bigger than acceptable distance
         elemination(generation_gnenome,child_to_be_eliminated)
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
     if(len(generation_gnenome)==1):
-        first_creation(best_best_genes["smallest_one"],4) #begin of generating the parents at case of eleminating all children
+        first_creation(best_best_genes["smallest_one"],5) #begin of generating the parents at case of eleminating all children
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
     print("best_best="+str(best_of_best))
@@ -359,6 +328,7 @@ while(1):
         break
     
     no_of_generation+=1
+    
 beeest_dict=dict(best_best_genes)
 print("\nbest \n",str(dict(best_best_genes)))
 mp.plot(beeest_dict["smallest_one"][:,0],beeest_dict["smallest_one"][:,1])
