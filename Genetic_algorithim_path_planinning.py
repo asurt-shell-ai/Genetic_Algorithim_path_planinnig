@@ -1,8 +1,6 @@
-from curses import keyname
 import random as ran
 import tempfile as TP
 from math import *
-from turtle import distance
 import numpy as np
 import matplotlib.pyplot as mp
 
@@ -278,7 +276,7 @@ waypoint =  np.array([           [0.,0.],
 
 row,col=waypoint.shape
 
-first_creation(waypoint,5) #begin of generating the parents
+first_creation(waypoint,8) #begin of generating the parents
 generation_gnenome=np.load(generation_house,allow_pickle=False)
 
 '''
@@ -293,7 +291,7 @@ best_of_best=500000000
 
 wait_to_exit=0 #how many times should the best distance be repeated  to exit the main loop
 
-exit_threshold=50#limit of repeated best distance 
+exit_threshold=1000#limit of repeated best distance 
 
 while(1):
     cross_over(generation_gnenome,row)
@@ -304,7 +302,7 @@ while(1):
     now_best=min(distance)
 
     if(now_best==best_of_best or best_of_best<now_best):
-        print("condition happened")
+        #print("condition happened")
         wait_to_exit+=1
 
     elif(now_best < best_of_best ):
@@ -318,11 +316,10 @@ while(1):
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
     if(len(generation_gnenome)==1):
-        first_creation(best_best_genes["smallest_one"],5) #begin of generating the parents at case of eleminating all children
+        first_creation(best_best_genes["smallest_one"],8) #begin of generating the parents at case of eleminating all children
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
-    print("best_best="+str(best_of_best))
-    print("now_best="+str(now_best))
+    print("generation "+str(no_of_generation)+ " | precentage to reach to the best = "+str((1180/best_of_best)*100)+str("%"))
 
     if(wait_to_exit==exit_threshold):
         break
