@@ -3,6 +3,7 @@ import tempfile as TP
 from math import *
 import numpy as np
 import matplotlib.pyplot as mp
+from sklearn.metrics.pairwise import euclidean_distances
 
 generation_home_land=TP.NamedTemporaryFile(delete=False)
 generation_house=generation_home_land.name+".npz"
@@ -13,34 +14,28 @@ smallest_gene_house=smallest_gene_land.name+".npz"
 no_of_child=0
 generation=0
 
-def distance_measuring(genome,no_of_points):
+def distance_measuring(genome):
     '''
     measuring total eculadian distance for each genom
-
     Argument
     -----------
     genome: dictionary with string key and 2d array
     no_of_points: now of goals in the map
-
     Return
     -----------
     distance list contain total eculdian distance for each genome
     '''
     i=0
-    j=1
     total_distance=[]
     key=list(dict(genome))
     while(i<len(key)):
-        sum_of_distance=0
-        while(j<no_of_points-1):
-            x1=float(genome[key[i]][j][0])
-            x2=float(genome[key[i]][j+1][0])
-            y1=float(genome[key[i]][j][1])
-            y2=float(genome[key[i]][j+1][1])
-            sum_of_distance+=sqrt(pow((x1-x2),2)+(pow((y1-y2),2)))
-            j+=1
+        distance_matrix=euclidean_distances(genome[key[i]], genome[key[i]])
         j=0
-        total_distance.append(sum_of_distance)
+        sum=0
+        while(j<row-1):
+            sum += distance_matrix[j][j+1]
+            j+=1
+        total_distance.append(sum)
         i+=1
     i=0
     return total_distance
@@ -186,53 +181,36 @@ def mutation(genoms,row):
     i=0
     np.savez(generation_house,**genes)
 
-def fitness(genome,distance_list,biggest_acceptable_distance):
+def fitness(genome,distance_list,no_of_best_children):
     """
     fitness function that test which geneome has the shortest distance
     and get its index to enter it in fuction to be deleted
     
     Arguments:
         genome: presverve generation geneoms 
-        no_of_points : number of goals cordinate in the map
-        biggest_acceptable_distance=if the geneome distance is bigger than will be eleminated
-    Returns:
-        list contain key no .of eleminated genes
+        distance_list: total distance for each genome
+        no_of_best_children : number of best children you want to preserve
+
     """
-    i=0
-    j=1
     y=0
+    i=0
     total_distance=[]
     total_distance=distance_list
-    genome_to_be_deleted=[]
-    key=list(dict(genome))
-
-    while(y<len(total_distance)):
-        if(total_distance[y] > float(biggest_acceptable_distance)):
-            genome_to_be_deleted.append(y)
+    best_children_index=[]
+    genome=dict(genome)
+    keylist_gene=list(genome.keys())
+    court={}
+    while(y<no_of_best_children):
+        minimum=min(total_distance)#find the minimum distance in the list
+        best_children_index.append(total_distance.index(minimum)) #save minimum index in the list and increase it by 1 as we will delete it 
+        total_distance[total_distance.index(minimum)]=float('inf') #replace the minimum value with +ve infinty
         y+=1
     y=0
-    return genome_to_be_deleted
-
-def elemination(generation_genoms,key_name):
-    """
-        elemintaed the genes that that exceed maximum acceptable distance
-    Arguments:
-        generation_genoms: presverve generation geneoms 
-        key_name: list contain genes name that will be  deleted
-        biggest_acceptable_distance=if the geneome distance is bigger than will be eleminated
-    Returns:
-        none
-    save modified gene
-    """
-    test={}
-    test=dict(generation_genoms)
-    key_g=list(test.keys())
-    key_no=key_name
-    i=0
-    while (i<len(key_name)):
-        del test[key_g[key_no[i]]] 
-        i+=1
-    np.savez(generation_house,**test)
+    while(y<len(best_children_index)):
+        court.update({keylist_gene[best_children_index[y]]:genome[keylist_gene[best_children_index[y]]]})
+        y+=1
+    y=0
+    np.savez(generation_house,**court)
 
 def best_of_best_saver(genome,distance_list):
     """
@@ -243,17 +221,15 @@ def best_of_best_saver(genome,distance_list):
     Returns:
         none
     """
-    i=0
-    j=1
     key=list(dict(genome))
     total_distance=[]
-    total_distance.append(distance_list)
+    total_distance=distance_list
     minimum=min(total_distance) #search for the minimum distance in list
     index_minimum=total_distance.index(minimum) # determine where the gene name taht has the smallest total distance
     smallest_distance_gene={"smallest_one":genome[key[index_minimum]]}
     np.savez(smallest_gene_house,**smallest_distance_gene)
 
-waypoint =  np.array([           [0.,0.],
+waypoint =  np.array([  [      0.     ,        0.    ],
                         [ 114.28714842,   41.98759603],
                         [  62.47783741,  -10.16037304],
                         [  24.5058101 ,  179.34217451],
@@ -276,7 +252,7 @@ waypoint =  np.array([           [0.,0.],
 
 row,col=waypoint.shape
 
-first_creation(waypoint,8) #begin of generating the parents
+first_creation(waypoint,100) #begin of generating the parents
 generation_gnenome=np.load(generation_house,allow_pickle=False)
 
 '''
@@ -287,41 +263,35 @@ every_genereation_check=1 #pass n generation then check there fitnes
 
 now_best=0
 
-best_of_best=500000000
+best_of_best=5000
 
 wait_to_exit=0 #how many times should the best distance be repeated  to exit the main loop
-
-exit_threshold=1000#limit of repeated best distance 
 
 while(1):
     cross_over(generation_gnenome,row)
     generation_gnenome=np.load(generation_house,allow_pickle=False)
     mutation(generation_gnenome,row)
     generation_gnenome=np.load(generation_house,allow_pickle=False)
-    distance=distance_measuring(generation_gnenome,row)
+    distance=distance_measuring(generation_gnenome)
+
     now_best=min(distance)
 
-    if(now_best==best_of_best or best_of_best<now_best):
-        #print("condition happened")
-        wait_to_exit+=1
-
-    elif(now_best < best_of_best ):
+    if(now_best < best_of_best ):
         best_of_best=now_best
-        best_of_best_saver(generation_gnenome,row)
+        best_of_best_saver(generation_gnenome,distance)
         best_best_genes=np.load(smallest_gene_house,allow_pickle=False)
 
     if(no_of_generation%every_genereation_check==0):
-        child_to_be_eliminated=fitness(generation_gnenome,distance,biggest_acceptable_distance=(now_best*1.15))# the child that will be eleminated it if it bigger than acceptable distance
-        elemination(generation_gnenome,child_to_be_eliminated)
+        fitness(generation_gnenome,distance,50) #the best children to be selected 
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
     if(len(generation_gnenome)==1):
-        first_creation(best_best_genes["smallest_one"],8) #begin of generating the parents at case of eleminating all children
+        first_creation(best_best_genes["smallest_one"],100) #begin of generating the parents at case of eleminating all children
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
     print("generation "+str(no_of_generation)+ " | precentage to reach to the best = "+str((1180/best_of_best)*100)+str("%"))
 
-    if(wait_to_exit==exit_threshold):
+    if(((1180/best_of_best)*100)>90):
         break
     
     no_of_generation+=1
