@@ -16,7 +16,35 @@ cross_over(genoms,row)
 #row : number of goals cordinates
 #save the produced parent into temporary file
 ```
-
+mutation phase which happen after crossover that make mutation to random goals cordinate 
+```
+mutation(genoms,row)
+#genome : dictionary that contain chromosome of child or parent with value N X 2 numpy 2d araay 
+#row : number of goals cordinates
+#save the produced parent/children into temporary file
+```
+last phase is classifictaion phase which eliminate the biggest distance children and select only the smallest children in generation
+```
+fitness(genome,distance_list,no_of_best_children)
+# genome : dictionary that contain chromosome of child or parent with value N X 2 numpy 2d araay  
+# distance_list : take the list of distance for each chromosome
+# no_of_best_children : how many children you want to select to continue generation
+# Non-return function 
+```
+and another function is distance measuring that measure distance for each generation 
+```
+distance_measuring(genome):
+    '''
+    measuring total eculadian distance for each genom
+    Argument
+    -----------
+    genome: dictionary with string key and 2d array
+    no_of_points: now of goals in the map
+    Return
+    -----------
+    distance list contain total eculdian distance for each genome
+    '''
+ ```
 # Dependencies
 ```
 pip3 install numpy
