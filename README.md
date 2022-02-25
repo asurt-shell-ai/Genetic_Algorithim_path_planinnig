@@ -52,3 +52,5 @@ pip3 install matplotlib
 pip3 install sklearn
 ```
 # ScreenShot 
+![download](https://user-images.githubusercontent.com/81301684/155792995-11cdd46f-906f-45e1-aaaa-9b48bf284dd4.png)
+
