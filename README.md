@@ -54,3 +54,4 @@ pip3 install sklearn
 # ScreenShot 
 ![download](https://user-images.githubusercontent.com/81301684/155792995-11cdd46f-906f-45e1-aaaa-9b48bf284dd4.png)
 
+![download (1)](https://user-images.githubusercontent.com/81301684/155795104-a71b5550-8c4f-40c3-9646-9ce539cacda7.png)
