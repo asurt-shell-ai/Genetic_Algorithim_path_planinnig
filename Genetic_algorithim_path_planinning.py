@@ -4,6 +4,7 @@ from math import *
 import numpy as np
 import matplotlib.pyplot as mp
 from sklearn.metrics.pairwise import euclidean_distances
+import time
 
 generation_home_land=TP.NamedTemporaryFile(delete=False)
 generation_house=generation_home_land.name+".npz"
@@ -117,7 +118,7 @@ def cross_over(genoms,row):
         while(female<len(name_of_parents)):#other gene
             #print(name_of_parents[male]+" married to "+name_of_parents[female])
             endpoint=ran.randint(1,(row-5))
-            child=parent_genes[name_of_parents[female]][0:int(row/2)]
+            child=parent_genes[name_of_parents[female]][0:endpoint]
             row_child,col_child=np.shape(child)
             parent=parent_genes[name_of_parents[male]]
             parent_counter=0 #loop through parent loop that carry the parent genes to prevent same goal
@@ -254,19 +255,14 @@ row,col=waypoint.shape
 
 first_creation(waypoint,100) #begin of generating the parents
 generation_gnenome=np.load(generation_house,allow_pickle=False)
-
 '''
 start of the genetic algorithm
 '''
 no_of_generation=1 #count no of generation
 every_genereation_check=1 #pass n generation then check there fitnes
-
 now_best=0
-
 best_of_best=5000
-
-wait_to_exit=0 #how many times should the best distance be repeated  to exit the main loop
-
+start = time.process_time()
 while(1):
     cross_over(generation_gnenome,row)
     generation_gnenome=np.load(generation_house,allow_pickle=False)
@@ -282,16 +278,12 @@ while(1):
         best_best_genes=np.load(smallest_gene_house,allow_pickle=False)
 
     if(no_of_generation%every_genereation_check==0):
-        fitness(generation_gnenome,distance,50) #the best children to be selected 
-        generation_gnenome=np.load(generation_house,allow_pickle=False)
-
-    if(len(generation_gnenome)==1):
-        first_creation(best_best_genes["smallest_one"],100) #begin of generating the parents at case of eleminating all children
+        fitness(generation_gnenome,distance,60) #the best children to be selected 
         generation_gnenome=np.load(generation_house,allow_pickle=False)
 
     print("generation "+str(no_of_generation)+ " | precentage to reach to the best = "+str((1180/best_of_best)*100)+str("%"))
 
-    if(((1180/best_of_best)*100)>90):
+    if((time.process_time() - start)>(5*60)):
         break
     
     no_of_generation+=1
