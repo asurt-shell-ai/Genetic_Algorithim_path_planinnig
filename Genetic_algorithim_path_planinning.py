@@ -1,16 +1,11 @@
 import random as ran
-import tempfile as TP
 from math import *
 import numpy as np
 import matplotlib.pyplot as mp
-from sklearn.metrics.pairwise import euclidean_distances
 import time
 
-generation_home_land=TP.NamedTemporaryFile(delete=False)
-generation_house=generation_home_land.name+".npz"
-
-smallest_gene_land=TP.NamedTemporaryFile(delete=False)
-smallest_gene_house=smallest_gene_land.name+".npz"
+generation_gnenome={}
+best_best_genes={}
 
 no_of_child=0
 generation=0
@@ -26,20 +21,19 @@ def distance_measuring(genome):
     -----------
     distance list contain total eculdian distance for each genome
     '''
-    i=0
-    total_distance=[]
-    key=list(dict(genome))
-    while(i<len(key)):
-        distance_matrix=euclidean_distances(genome[key[i]], genome[key[i]])
-        j=0
-        sum=0
-        while(j<row-1):
-            sum += distance_matrix[j][j+1]
-            j+=1
-        total_distance.append(sum)
-        i+=1
-    i=0
-    return total_distance
+  # Extract all genomes into an array
+    children = []
+    for key in list(dict(genome)):
+        children.append(genome[key])
+    children = np.array(children)
+
+    # Shift children
+    shifted_children = children[:,1:]
+
+    # Compute distances
+    dists = np.linalg.norm(children[:,:-1]-shifted_children, axis=2)
+    dists = np.sum(dists, axis=1)
+    return dists.tolist()
 
 def shuffle_2D_matrix(matrix, axis = 0):
     """
@@ -91,13 +85,13 @@ def first_creation(waypoints,no_of_parents):
         parent_n=np.fliplr(parent_n)
         dict['genom_'+str(i)]=parent_n
         i+=1
-    np.savez(generation_house,**dict)
+    generation_gnenome.update(dict)
     
 def cross_over(genoms,row):
     """
         crossing over two genoms and produce new genoms
     Arguments:
-        generation_genoms: presverve generation geneoms 
+        genom: presverve generation geneoms 
         row: no of cordinate that genom had 
     Returns:
         none
@@ -111,7 +105,7 @@ def cross_over(genoms,row):
     male=0 
     female=0
     global no_of_child
-
+    generation_gnenome.clear()
     #crossover part
     while(male<len(name_of_parents)):#a loop that make single gene crossed with all other gene
         female=male+1
@@ -149,7 +143,9 @@ def cross_over(genoms,row):
 
     to_parents.update(genoms)
     to_parents.update(hospital)
-    np.savez(generation_house,**to_parents)
+
+    generation_gnenome.update(**to_parents)
+
     
 def mutation(genoms,row):
     """
@@ -172,15 +168,14 @@ def mutation(genoms,row):
         row2_list=ran.sample(range(1,row),mutated_gene_no)
         #end of generating 
 
-        #print("mutation_no: "+str(mutated_gene_no))
-
         while(j<mutated_gene_no-1):
             genes[genoms_key[i]][[row1_list[j],row2_list[j+1]]]=genes[genoms_key[i]][[row2_list[j+1],row1_list[j]]]
             j+=1
         j=0
         i+=1
     i=0
-    np.savez(generation_house,**genes)
+    generation_gnenome.clear()
+    generation_gnenome.update(**genes)
 
 def fitness(genome,distance_list,no_of_best_children):
     """
@@ -211,7 +206,8 @@ def fitness(genome,distance_list,no_of_best_children):
         court.update({keylist_gene[best_children_index[y]]:genome[keylist_gene[best_children_index[y]]]})
         y+=1
     y=0
-    np.savez(generation_house,**court)
+    generation_gnenome.clear()
+    generation_gnenome.update(**court)
 
 def best_of_best_saver(genome,distance_list):
     """
@@ -228,7 +224,8 @@ def best_of_best_saver(genome,distance_list):
     minimum=min(total_distance) #search for the minimum distance in list
     index_minimum=total_distance.index(minimum) # determine where the gene name taht has the smallest total distance
     smallest_distance_gene={"smallest_one":genome[key[index_minimum]]}
-    np.savez(smallest_gene_house,**smallest_distance_gene)
+    best_best_genes.clear()
+    best_best_genes.update(**smallest_distance_gene)
 
 waypoint =  np.array([  [      0.     ,        0.    ],
                         [ 114.28714842,   41.98759603],
@@ -253,8 +250,7 @@ waypoint =  np.array([  [      0.     ,        0.    ],
 
 row,col=waypoint.shape
 
-first_creation(waypoint,100) #begin of generating the parents
-generation_gnenome=np.load(generation_house,allow_pickle=False)
+first_creation(waypoint,80) #begin of generating the parents
 '''
 start of the genetic algorithm
 '''
@@ -265,9 +261,7 @@ best_of_best=5000
 start = time.process_time()
 while(1):
     cross_over(generation_gnenome,row)
-    generation_gnenome=np.load(generation_house,allow_pickle=False)
     mutation(generation_gnenome,row)
-    generation_gnenome=np.load(generation_house,allow_pickle=False)
     distance=distance_measuring(generation_gnenome)
 
     now_best=min(distance)
@@ -275,13 +269,11 @@ while(1):
     if(now_best < best_of_best ):
         best_of_best=now_best
         best_of_best_saver(generation_gnenome,distance)
-        best_best_genes=np.load(smallest_gene_house,allow_pickle=False)
 
     if(no_of_generation%every_genereation_check==0):
-        fitness(generation_gnenome,distance,60) #the best children to be selected 
-        generation_gnenome=np.load(generation_house,allow_pickle=False)
+        fitness(generation_gnenome,distance,70) #the best children to be selected 
 
-    print("generation "+str(no_of_generation)+ " | precentage to reach to the best = "+str((1180/best_of_best)*100)+str("%"))
+    print("generation "+str(no_of_generation)+ " | precentage to reach to the best = "+str((1045/best_of_best)*100)+str("%"))
 
     if((time.process_time() - start)>(5*60)):
         break
